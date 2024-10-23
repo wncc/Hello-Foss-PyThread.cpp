@@ -48,7 +48,7 @@ This C++ code computes the sum of an array using OpenMP with task-based parallel
 >
 ```shell
 # compile using g++ for Openmp
-g++ -I../include sum2.cpp -o sum2 -fopenmp
+g++ sum2.cpp -o sum2 -fopenmp
 ./sum2
 
 # compile using g++ for MPI
