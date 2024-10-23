@@ -148,4 +148,4 @@ Here you can find out more about `MPICH`: [https://www.mpich.org/](https://www.m
     |   |-- page-rank.cpp
 ### Note
 > Information about Functions in main is provided in [README.md](src/README.md) <br>
-> For contributing to this repo kindly go through the guidelines provided in [Contributing.md](src/Contributing.md)
+> For contributing to this repo kindly go through the guidelines provided in [Contributing.md](Contributing.md)
