@@ -8,9 +8,6 @@ using namespace std;
 // LU Decomposition function
 void l_u_d(float** a, float** l, float** u, int size)
 {
-    // Initialize a simple lock for parallel region
-    omp_lock_t lock;
-    omp_init_lock(&lock);
 
     // Initialize L and U matrices
     for (int i = 0; i < size; i++) {
@@ -35,29 +32,24 @@ void l_u_d(float** a, float** l, float** u, int size)
             // Update U matrix
             #pragma omp for schedule(static)
             for (int j = k; j < size; j++) {
-                omp_set_lock(&lock);
                 u[k][j] = a[k][j];
                 for (int s = 0; s < k; s++) {
                     u[k][j] -= l[k][s] * u[s][j];
                 }
-                omp_unset_lock(&lock);
             }
 
             // Update L matrix
             #pragma omp for schedule(static)
             for (int i = k + 1; i < size; i++) {
-                omp_set_lock(&lock);
                 l[i][k] = a[i][k];
                 for (int s = 0; s < k; s++) {
                     l[i][k] -= l[i][s] * u[s][k];
                 }
                 l[i][k] /= u[k][k];
-                omp_unset_lock(&lock);
             }
         }
     }
 
-    omp_destroy_lock(&lock);
 }
 int main(int argc, char *argv[]) {
     int size = 2;
