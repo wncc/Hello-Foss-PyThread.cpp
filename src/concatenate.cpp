@@ -5,7 +5,7 @@
 using namespace std;
 
 // Function to concatenate two arrays in parallel
-void concatenate(int arr1[], int arr2[], int n1, int n2, int arr3[]) {
+void concatenate(int* arr1, int* arr2, int n1, int n2, int* arr3) {
     #pragma omp parallel for
     for (int i = 0; i < n1; i++) {
         arr3[i] = arr1[i];
@@ -18,10 +18,19 @@ void concatenate(int arr1[], int arr2[], int n1, int n2, int arr3[]) {
 }
 
 int main() {
-    int n1 = 5, n2 = 5;
-    int arr1[n1] = {1, 2, 3, 4, 5};
-    int arr2[n2] = {6, 7, 8, 9, 10};
-    int arr3[n1 + n2];
+
+    int n1 = 5000000, n2 = 5000000;
+
+    int* arr1 = new int[n1];
+    int* arr2 = new int[n2];
+    int* arr3 = new int[n1+n2];
+
+    // initialisation
+    for(int i = 0; i < n1; i++)
+    {
+        arr1[i] = 0;
+        arr2[i] = 1;
+    }
 
     // Set the number of threads
     omp_set_num_threads(2);
@@ -34,6 +43,10 @@ int main() {
         cout << arr3[i] << " ";
     }
     cout << endl;
+
+    delete[] arr1;
+    delete[] arr2;
+    delete[] arr3;
 
     return 0;
 }
