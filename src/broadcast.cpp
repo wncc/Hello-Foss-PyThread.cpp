@@ -5,16 +5,20 @@
 
 // Function to broadcast two matrices
 void broadcast(const std::vector<std::vector<int>>& A, std::vector<std::vector<int>>& B) {
+    if (A.empty() || B.empty()) {
+        throw std::invalid_argument("Matrix A or B cannot be empty");
+    }
+
     size_t rowsA = A.size();
     size_t colsA = A[0].size();
     size_t rowsB = B.size();
     size_t colsB = B[0].size();
 
     if (rowsA != rowsB && rowsB != 1) {
-        throw std::invalid_argument("Incompatible dimensions for broadcasting");
+        throw std::invalid_argument("Incompatible dimensions for broadcasting (rows)");
     }
     if (colsA != colsB && colsB != 1) {
-        throw std::invalid_argument("Incompatible dimensions for broadcasting");
+        throw std::invalid_argument("Incompatible dimensions for broadcasting (columns)");
     }
 
     if (rowsB == 1) {
