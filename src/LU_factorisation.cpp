@@ -60,7 +60,9 @@ void l_u_d(float** a, float** l, float** u, int size)
     omp_destroy_lock(&lock);
 }
 int main(int argc, char *argv[]) {
-    int size = 2;
+    int size;
+    cout<<"Please Enter size"<<endl;
+    cin>>size;//accept the size of the array
     float **a, **l, **u;
 
     // Allocate memory for the 2D arrays
@@ -74,15 +76,15 @@ int main(int argc, char *argv[]) {
     }
 
     // Initialize the array 'a'
-    float temp[2][2] = {
-        {4, 3},
-        {6, 3}
-    };
+    //Instead of manuall setting the value of an array we allow the user to input array values
+    cout << "Enter the elements of the matrix A:" << endl;
     for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            a[i][j] = temp[i][j];
-        }
+    for (int j = 0; j < size; j++) {
+        cin >> a[i][j];
     }
+    }
+
+    
 
     // Perform LU decomposition
     l_u_d(a, l, u, size);
@@ -104,6 +106,15 @@ int main(int argc, char *argv[]) {
         }
         printf("\n");
     }
+    //Free the dynamicall allocated memory 
+    for (int i = 0; i < size; i++) {
+        free(a[i]);
+        free(l[i]);
+        free(u[i]);
+    }
+    free(a);
+    free(l);
+    free(u);
 
     return 0;
 }
