@@ -3,13 +3,16 @@
 #include <malloc.h>
 #include <omp.h>
 #include <mpi.h>
+#include <iostream>
+#include<algorithm>
 using namespace std;
 
 int NumberOfPoints = 0;
 int max_value = -1;
 int *p;
-int arr[100];
-int *ReadFromFile()
+int *arr;
+
+int* ReadFromFile()
 {
     int *points;
     FILE *file;
@@ -23,8 +26,8 @@ int *ReadFromFile()
     while (fgets(line, sizeof(line), file))
         NumberOfPoints++;
     fclose(file);
-    int size = NumberOfPoints;
-    points = (int *)malloc(size* sizeof(int));
+    
+    points = (int *)malloc(NumberOfPoints * sizeof(int)); // Allocate memory for points
     if (points == NULL) {
         perror("Error allocating memory");
         return NULL;
@@ -36,6 +39,7 @@ int *ReadFromFile()
         free(points);
         return NULL;
     }
+    
     while (fgets(line, sizeof(line), file)) {
         points[index++] = atoi(line);
     }
@@ -47,7 +51,7 @@ int main(int argc, char **argv)
 {
     int indexx = 0;
     int *points, Bars, np, Range, tmp_Range = 0,
-                                  Points_per_process;
+        Points_per_process;
     int size;
     int *irecv;
     int *AllCount, *count;
@@ -67,7 +71,6 @@ int main(int argc, char **argv)
         cout << "Enter the number of bars" << endl;
         cin >> Bars;
 
-
         points = ReadFromFile();
         Points_per_process = ((double)NumberOfPoints / (NumberOfprocess)) + 0.5;
 
@@ -76,7 +79,6 @@ int main(int argc, char **argv)
             size = NumberOfPoints;
 
         p = (int*)malloc(size * sizeof(int)); 
-                                        
         for (i = 0; i < size; i++)
         {
             if (i < NumberOfPoints)
@@ -84,6 +86,8 @@ int main(int argc, char **argv)
             else
                 p[i] = -1;
         }
+        
+        max_value = *std::max_element(p, p + NumberOfPoints);  // Find max value for Range
         Range = max_value / Bars;
         if (max_value % Bars != 0)
         {
@@ -94,55 +98,55 @@ int main(int argc, char **argv)
 
     MPI_Bcast(&size, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&Bars, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-    irecv = (int*)malloc(size * sizeof(int *));
-    count = (int*)malloc(Bars * sizeof(int *));
-
     MPI_Bcast(&Range, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&Points_per_process, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Scatter(p, Points_per_process, MPI_INT, irecv, Points_per_process, MPI_INT, 0, MPI_COMM_WORLD);
 
+    irecv = (int*)malloc(Points_per_process * sizeof(int)); 
+    count = (int*)malloc(Bars * sizeof(int)); 
     for (l = 0; l < Bars; l++)
     {
         count[l] = 0;
     }
 
-#pragma omp parallel shared(AllCount)
+    MPI_Scatter(p, Points_per_process, MPI_INT, irecv, Points_per_process, MPI_INT, 0, MPI_COMM_WORLD);
+
+    // Dynamically allocate arr based on Points_per_process
+    arr = (int*)malloc(Points_per_process * sizeof(int));
+
+#pragma omp parallel shared(count)
     {
 #pragma omp for schedule(static)
         for (i = 0; i < Points_per_process; i++)
         {
             for (l = 0; l < Bars; l++)
             {
-                if (irecv[i] <= l * Range + Range && irecv[i] != -1)
+                if (irecv[i] <= (l + 1) * Range && irecv[i] != -1)
                 {
                     count[l]++;
-                    arr[indexx++] = l;
+                    arr[i] = l;  // Store the bar index in arr
                     break;
                 }
             }
         }
     }
-    free(irecv);
-    AllCount = (int*)malloc(NumberOfPoints * sizeof(int));
-    MPI_Gather(arr, indexx, MPI_INT, AllCount, indexx, MPI_INT, 0, MPI_COMM_WORLD);
+
+    AllCount = (int*)malloc(NumberOfPoints * sizeof(int));  // Gather result
+
+    MPI_Gather(arr, Points_per_process, MPI_INT, AllCount, Points_per_process, MPI_INT, 0, MPI_COMM_WORLD);
 
     if (rank == 0)
     {
-        // count = malloc(Bars * sizeof(int));
-        for (l = 0; l < Bars; l++)
-        {
-            count[l] = 0;
-        }
-
+        // Count the final distribution of points across bars
         for (i = 0; i < Bars; i++)
         {
-            for (j = 0; j < NumberOfPoints; j++)
+            count[i] = 0;
+        }
+
+        for (i = 0; i < NumberOfPoints; i++)
+        {
+            if (AllCount[i] != -1)
             {
-                if (AllCount[j] == i && AllCount[j] != -1)
-                {
-                    count[i]++;
-                }
+                count[AllCount[i]]++;
             }
         }
 
@@ -150,10 +154,14 @@ int main(int argc, char **argv)
         {
             cout << "Bar " << i << " has " << count[i] << " points" << endl;
         }
-        
-    }
-    MPI_Finalize();
-    
 
+        free(AllCount);
+    }
+
+    free(irecv);
+    free(count);
+    free(arr);
+
+    MPI_Finalize();
     return 0;
 }
