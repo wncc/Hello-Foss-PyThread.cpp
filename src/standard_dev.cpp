@@ -7,6 +7,7 @@
 double computeMean(const std::vector<int>& data, int num_threads) {
     double sum = 0.0;
 
+    int num_threads = omp_get_max_threads();
     #pragma omp parallel for reduction(+:sum) num_threads(num_threads)
     for (size_t i = 0; i < data.size(); i++) {
         sum += data[i];
@@ -21,6 +22,7 @@ double computeStandardDeviation(const std::vector<int>& data, int num_threads) {
 
     double variance_sum = 0.0;
 
+    int num_threads = omp_get_max_threads();
     #pragma omp parallel for reduction(+:variance_sum) num_threads(num_threads)
     for (size_t i = 0; i < data.size(); i++) {
         variance_sum += (data[i] - mean) * (data[i] - mean);
