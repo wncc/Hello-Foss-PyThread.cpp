@@ -7,7 +7,7 @@ int parallel_sum(const int arr[], int size, int step_size) {
 
     #pragma omp parallel
     {
-        #pragma omp for nowait
+       
         for (int i = 0; i < size; i += step_size) {
             int start = i, end = i + step_size - 1;
 

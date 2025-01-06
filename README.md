@@ -146,8 +146,6 @@ Here you can find out more about `MPICH`: [https://www.mpich.org/](https://www.m
     |   |-- wrong_sum.cpp (Demo of a wrong summation example for learning purposes)
     |-- Application
     |   |-- page-rank.cpp
-
-## Resources
-- [Parallelization with MPI and OpenMPI](http://compphysics.github.io/ComputationalPhysics2/doc/LectureNotes/_build/html/parallelization.html#)
-- [OpenMP](https://medium.com/swlh/openmp-on-ubuntu-1145355eeb2)
-
+### Note
+> Information about Functions in main is provided in [README.md](src/README.md) <br>
+> For contributing to this repo kindly go through the guidelines provided in [Contributing.md](Contributing.md)

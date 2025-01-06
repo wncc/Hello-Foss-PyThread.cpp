@@ -18,14 +18,13 @@ int findMax(int elementsToProcess, const std::vector<int>& data) {
 
 int main(int argc, char** argv) {
     MPI_Init(&argc, &argv);  
-    double time = MPI_Wtime();  // Start timing
-
     int processorsNr;
     MPI_Comm_size(MPI_COMM_WORLD, &processorsNr);  
     int processId;
     MPI_Comm_rank(MPI_COMM_WORLD, &processId); 
 
     int buff;  
+    double time;
 
     if (processId == 0) {
         int max = 0;  // Global maximum
@@ -66,6 +65,10 @@ int main(int argc, char** argv) {
             MPI_Send(data.data() + startIdx, buff, MPI_INT, i, 2, MPI_COMM_WORLD);
         }
 
+        // Synchronize all processes before starting the timing
+        MPI_Barrier(MPI_COMM_WORLD);
+        time = MPI_Wtime();  // Start timing
+
         // Master process finds its own max
         max = findMax(elementsToEachProcess + remainder, data);
 
@@ -78,8 +81,8 @@ int main(int argc, char** argv) {
             }
         }
 
-        std::cout << "Global maximum is " << max << std::endl;
         time = MPI_Wtime() - time;  // Stop timing
+        std::cout << "Global maximum is " << max << std::endl;
         std::cout << "Time elapsed: " << time << " seconds" << std::endl;
     }
     
@@ -88,6 +91,9 @@ int main(int argc, char** argv) {
         MPI_Recv(&buff, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         std::vector<int> dataToProcess(buff);  
         MPI_Recv(dataToProcess.data(), buff, MPI_INT, 0, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+        // Synchronize before starting the computation
+        MPI_Barrier(MPI_COMM_WORLD);
 
         int theMax = findMax(buff, dataToProcess);
 
